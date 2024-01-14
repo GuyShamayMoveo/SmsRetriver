@@ -50,7 +50,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        val client = SmsRetriever.getClient(this)w
+        val client = SmsRetriever.getClient(this)
         val task = client.startSmsRetriever()
     }
 
