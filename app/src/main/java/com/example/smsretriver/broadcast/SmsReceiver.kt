@@ -10,6 +10,8 @@ import com.google.android.gms.common.api.Status
 
 class SmsReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
+        Log.i("tester", "Broad cast received.")
+
         if (SmsRetriever.SMS_RETRIEVED_ACTION == intent?.action) {
             val extras = intent.extras
             val status = extras?.get(SmsRetriever.EXTRA_STATUS) as Status
