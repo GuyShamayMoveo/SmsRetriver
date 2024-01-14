@@ -6,11 +6,14 @@ import android.content.Intent
 import android.os.Bundle
 import android.telephony.SmsMessage
 import android.util.Log
-import com.google.android.gms.auth.api.phone.SmsRetriever
-import com.google.android.gms.common.api.CommonStatusCodes
-import com.google.android.gms.common.api.Status
 
-class TelephonySmsBroadcastReceiver : BroadcastReceiver() {
+interface TelephonySmsReceivedListener {
+    fun smsReceived(smsMessage: SmsMessage)
+}
+
+class TelephonySmsBroadcastReceiver(
+    private val listener: TelephonySmsReceivedListener
+) : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         Log.i("tester", "TelephonySmsBroadcastReceiver onReceive() called.")
         intent?.extras?.let {
@@ -19,15 +22,11 @@ class TelephonySmsBroadcastReceiver : BroadcastReceiver() {
     }
 
     private fun printSmsBody(bundle: Bundle) {
-        // Retrieve the SMS message
-        val pdus = bundle["pdus"] as Array<Any>?
+        val pdus = bundle["pdus"] as Array<*>?
         if (pdus != null) {
             for (pdu in pdus) {
                 val smsMessage: SmsMessage = SmsMessage.createFromPdu(pdu as ByteArray)
-
-                // Get the SMS body
-                val smsBody: String = smsMessage.getMessageBody()
-                Log.d("SmsReceiver", "SMS Body: $smsBody")
+                listener.smsReceived(smsMessage)
             }
         }
     }

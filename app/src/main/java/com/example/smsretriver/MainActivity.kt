@@ -1,10 +1,12 @@
 package com.example.smsretriver
 
+import android.app.AlertDialog
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Telephony
+import android.telephony.SmsMessage
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -22,6 +24,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.smsretriver.broadcasts.SmsRetrieverBroadcastReceiver
 import com.example.smsretriver.broadcasts.TelephonySmsBroadcastReceiver
+import com.example.smsretriver.broadcasts.TelephonySmsReceivedListener
 import com.example.smsretriver.mainScreen.MainScreen
 import com.example.smsretriver.ui.theme.SmsretriverTheme
 import com.google.android.gms.auth.api.phone.SmsRetriever
@@ -29,9 +32,9 @@ import com.google.android.gms.auth.api.phone.SmsRetriever
 
 private const val REQUEST_CODE = 13213
 
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(), TelephonySmsReceivedListener {
 
-    private val telephonyBroadcastReceiver = TelephonySmsBroadcastReceiver()
+    private val telephonyBroadcastReceiver = TelephonySmsBroadcastReceiver(this)
     private val smsRetrieverBroadcastReceiver = SmsRetrieverBroadcastReceiver()
 
     private val smsPermissions = arrayOf(
@@ -81,12 +84,12 @@ class MainActivity : ComponentActivity() {
         registerReceiver(
             telephonyBroadcastReceiver,
             IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION),
-            RECEIVER_NOT_EXPORTED
+            RECEIVER_EXPORTED
         )
         registerReceiver(
             smsRetrieverBroadcastReceiver,
             IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION),
-            RECEIVER_NOT_EXPORTED
+            RECEIVER_EXPORTED
         )
     }
 
@@ -116,6 +119,17 @@ class MainActivity : ComponentActivity() {
             }
         }
         return true
+    }
+
+    override fun smsReceived(smsMessage: SmsMessage) {
+        AlertDialog.Builder(this)
+            .setTitle("Sms received")
+            .setMessage(smsMessage.messageBody)
+            .setPositiveButton("close") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .create()
+            .show()
     }
 }
 
