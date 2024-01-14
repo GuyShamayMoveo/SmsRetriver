@@ -20,7 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.example.smsretriver.broadcast.SmsReceiver
+import com.example.smsretriver.broadcasts.SmsRetrieverBroadcastReceiver
+import com.example.smsretriver.broadcasts.TelephonySmsBroadcastReceiver
 import com.example.smsretriver.mainScreen.MainScreen
 import com.example.smsretriver.ui.theme.SmsretriverTheme
 import com.google.android.gms.auth.api.phone.SmsRetriever
@@ -30,7 +31,9 @@ private const val REQUEST_CODE = 13213
 
 class MainActivity : ComponentActivity() {
 
-    private val broadCastReceiver = SmsReceiver()
+    private val telephonyBroadcastReceiver = TelephonySmsBroadcastReceiver()
+    private val smsRetrieverBroadcastReceiver = SmsRetrieverBroadcastReceiver()
+
     private val smsPermissions = arrayOf(
         "Manifest.permission.READ_SMS",
         "Manifest.permission.SEND_SMS",
@@ -70,11 +73,19 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onResume() {
         super.onResume()
+        registerBroadcastReceivers()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun registerBroadcastReceivers() {
         registerReceiver(
-            broadCastReceiver,
-            IntentFilter(
-                Telephony.Sms.Intents.SMS_RECEIVED_ACTION
-            ),
+            telephonyBroadcastReceiver,
+            IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION),
+            RECEIVER_NOT_EXPORTED
+        )
+        registerReceiver(
+            smsRetrieverBroadcastReceiver,
+            IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION),
             RECEIVER_NOT_EXPORTED
         )
     }
@@ -82,7 +93,12 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onPause() {
         super.onPause()
-        unregisterReceiver(broadCastReceiver)
+        unregisterBroadcastReceiver()
+    }
+
+    private fun unregisterBroadcastReceiver() {
+        unregisterReceiver(telephonyBroadcastReceiver)
+        unregisterReceiver(smsRetrieverBroadcastReceiver)
     }
 
     private fun requestSmsPermissions() {
